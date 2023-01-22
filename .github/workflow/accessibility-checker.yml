@@ -1,0 +1,54 @@
+name: 'Accessibility Checker'
+description: 'Verify accessibility on html files.'
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+  # Needed for the 'trilom/file-changes-action' action
+  pull-requests: read
+
+# This allows a subsequently queued workflow run to interrupt previous runs
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  check-html:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.13.x
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      # Creates file "$/files.json"
+      - name: Gather files changed
+        uses: trilom/file-changes-action@a6ca26c14274c33b15e6499323aac178af06ad4b
+        with:
+          fileOutput: 'json'
+
+      # For verification
+      - name: Show files changed
+        run: cat $HOME/files.json
+
+      # This is where you can do your check, the list flag will have all of the
+      # changed files. In the .js file you can filter out files that aren't
+      # html/css files or whichever you don't want. Then you can run your
+      # scanner to pull in colors or alt text and use the pure functions
+      # to verify they pass accessibility
+      - name: Accessibility Check
+        run: |
+          ../dist/index.js \
+            --list $HOME/files.json
