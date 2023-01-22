@@ -42,7 +42,7 @@ jobs:
 
       # For verification
       - name: Show files changed
-        run: run: |
+        run: |
           for file in ${{ steps.file_changes.outputs.all_changed_files }}; do
             echo "$file was changed"
           done
