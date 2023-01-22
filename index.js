@@ -3,7 +3,7 @@ const github = require('@actions/github');
 const fs = require('fs');
 
 try {
-  // const files = JSON.parse(process.env.FILES_CHANGED);
+  const files = JSON.parse(process.env.FILES_CHANGED);
 
   files.forEach(file => {
     if (file.includes('.css')) {
