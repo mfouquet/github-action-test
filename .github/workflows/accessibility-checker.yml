@@ -36,13 +36,16 @@ jobs:
       # Creates file "$/files.json"
       - name: Gather files changed
         id: file_changes
-        uses: trilom/file-changes-action@a6ca26c14274c33b15e6499323aac178af06ad4b
+        uses: tj-actions/changed-files@v35
         with:
-          fileOutput: 'json'
+          json: "true"
 
       # For verification
       - name: Show files changed
-        run: cat $HOME/files.json
+        run: run: |
+          for file in ${{ steps.file_changes.outputs.all_changed_files }}; do
+            echo "$file was changed"
+          done
 
       # This is where you can do your check, the list flag will have all of the
       # changed files. In the .js file you can filter out files that aren't
@@ -51,5 +54,5 @@ jobs:
       # to verify they pass accessibility
       - name: Accessibility Check
         env:
-          FILES_CHANGED: ${{ steps.file_changes.outputs.files }}
+          FILES_CHANGED: ${{ steps.file_changes.outputs.all_changed_files }}
         run: node ./index.js
