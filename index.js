@@ -3,7 +3,7 @@ const github = require('@actions/github');
 const fs = require('fs');
 
 try {
-  const files = JSON.parse(process.env.FILES_CHANGED);
+  // const files = JSON.parse(process.env.FILES_CHANGED);
 
   files.forEach(file => {
     if (file.includes('.css')) {
@@ -51,7 +51,19 @@ try {
           console.error(err);
           return;
         }
-        console.log(data);
+        const altRegex = /alt="([^""]*)"/g;
+        data.split(/\r?\n/).forEach(line =>  {
+          if (line.includes('alt')) {
+            altRegex.lastIndex = 0;
+            const text = line.trim();
+            const regexResult = altRegex.exec(text);
+            //@ts-expect-error later
+            const status = determineAltTextStatus(regexResult[1], false);
+            if (status !== 'written' && status !== 'decorative') {
+              core.warning(`The alt text "${regexResult[1]}" fails for the following reason: ${status}`);
+            }
+          }
+        });
       });
     } else {
       console.log(`Nothing to check in this file: ${file}`);
@@ -59,7 +71,7 @@ try {
   });
 
 
-  // fs.readFile('./example/example.css', 'utf8', (err, data) => {
+  // fs.readFile('./example/example.html', 'utf8', (err, data) => {
 
   // });
 
@@ -157,4 +169,98 @@ const GetContrastRatio = (
   }
 
   return result;
+};
+
+const determineAltTextStatus = (text, isPlugin) => {
+  const emojiRegex = /\p{Emoji_Presentation}/gu;
+
+  if (emojiRegex.test(text)) {
+    const repetitiveEmojiRegex =
+      /([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2030-\u3300]|[\u00A9-\u00AE]|[\uFE0F])(\1){1,}/g;
+
+    const denseEmojiRegex = /\p{Emoji_Presentation}{2,}/gu;
+
+    //repetitive emoji
+    if ((text.match(repetitiveEmojiRegex) || []).length > 0) {
+      return 'repetitive emoji';
+    }
+
+    //dense emoji
+    if ((text.match(denseEmojiRegex) || []).length > 0) {
+      return 'dense emoji';
+    }
+
+    //excessive emoji
+    if (
+      text.length > 20 &&
+      (text.match(emojiRegex) || []).length / text.length >= 0.1
+    ) {
+      return 'excessive emoji';
+    }
+
+    return 'emoji usage';
+  }
+
+  const uppercaseText = text.toUpperCase();
+  //redundant info
+  if (
+    uppercaseText.indexOf('PICTURE OF') > -1 ||
+    uppercaseText.indexOf('SCREENSHOT OF') > -1 ||
+    uppercaseText.indexOf('IMAGE OF') > -1 ||
+    uppercaseText.indexOf('PICTURE SHOWING') > -1 ||
+    uppercaseText.indexOf('SCREENSHOT SHOWING') > -1 ||
+    uppercaseText.indexOf('IMAGE SHOWING') > -1
+  ) {
+    return 'redundant info';
+  }
+
+  // length
+  if (text.length > 200) {
+    return 'character count';
+  }
+
+  //keyword stuffing
+  const textStrippedPunctuation = text.replace(/[,.!]/g, '');
+  const textStrippedCommonWords = textStrippedPunctuation.replace(
+    /\ba|and|for|the|with|that|all|they|she|you|your|our|will|shall|have|has|are|way|need|needs\b/gi,
+    ''
+  );
+
+  // separate string into array of lowercase words
+  const words = textStrippedCommonWords.toLowerCase().split(/\s+/g);
+
+  // form object of word counts
+  const wordCounts = {};
+  words.forEach((word) => {
+    //@ts-expect-error update later
+    wordCounts[word] = (wordCounts[word] || 0) + 1;
+  });
+
+  const containsMinimumWordCount = words.length > 6;
+  let containsRepeatedWords = false;
+  for (const key in wordCounts) {
+    //@ts-expect-error update later
+    if (wordCounts[key] > 1) {
+      containsRepeatedWords = true;
+      break;
+    }
+  }
+
+  if (containsMinimumWordCount && containsRepeatedWords) {
+    for (const key in wordCounts) {
+      //@ts-expect-error update later
+      const percentage = (wordCounts[key] / words.length) * 100;
+
+      if (percentage >= 50) {
+        return 'keyword stuffing';
+        break;
+      }
+    }
+  }
+
+  if (text === '') {
+    return isPlugin ? 'to-do' : 'decorative';
+  }
+
+  return 'written';
 };
