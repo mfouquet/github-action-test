@@ -3,6 +3,7 @@ const github = require('@actions/github');
 const fs = require('fs');
 
 try {
+  console.log(process.env.FILES_CHANGED);
   const files = JSON.parse(process.env.FILES_CHANGED);
   console.log(files);
   files.forEach(file => {
