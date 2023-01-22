@@ -6,6 +6,7 @@ try {
   const files = JSON.parse(process.env.FILES_CHANGED);
 
   files.forEach(file => {
+    console.log(file);
     if (file.includes('.css')) {
       fs.readFile(file, 'utf8', (err, data) => {
         if (err) {
