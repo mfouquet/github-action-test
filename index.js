@@ -3,12 +3,9 @@ const github = require('@actions/github');
 const fs = require('fs');
 
 try {
-  console.log(process.env.FILES_CHANGED);
   const escapedFiles = process.env.FILES_CHANGED.replace(/\\/g,"");
   const files = JSON.parse(escapedFiles);
-  console.log(files);
   files.forEach(file => {
-    console.log(file);
     if (file.includes('.css')) {
       fs.readFile(file, 'utf8', (err, data) => {
         if (err) {
@@ -72,11 +69,6 @@ try {
       console.log(`Nothing to check in this file: ${file}`);
     }
   });
-
-
-  // fs.readFile('./example/example.html', 'utf8', (err, data) => {
-
-  // });
 
 } catch (error) {
   core.setFailed(error.message);
