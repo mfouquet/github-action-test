@@ -4,7 +4,7 @@ const fs = require('fs');
 
 try {
   const files = JSON.parse(process.env.FILES_CHANGED);
-
+  console.log(files);
   files.forEach(file => {
     console.log(file);
     if (file.includes('.css')) {
