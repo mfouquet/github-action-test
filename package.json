@@ -4,6 +4,7 @@
   "description": "Testing a github action",
   "main": "dist/index.js",
   "scripts": {
+    "build-test": "node ./index.js ['./example/example.css']",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

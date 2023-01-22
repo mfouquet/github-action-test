@@ -35,6 +35,7 @@ jobs:
 
       # Creates file "$/files.json"
       - name: Gather files changed
+        id: file_changes
         uses: trilom/file-changes-action@a6ca26c14274c33b15e6499323aac178af06ad4b
         with:
           fileOutput: 'json'
@@ -49,6 +50,6 @@ jobs:
       # scanner to pull in colors or alt text and use the pure functions
       # to verify they pass accessibility
       - name: Accessibility Check
-        run: |
-          node ./index.js \
-            --list $HOME/files.json
+        env:
+          FILES_CHANGED: ${{ steps.file_changes.outputs.files }}
+        run: node ./index.js
