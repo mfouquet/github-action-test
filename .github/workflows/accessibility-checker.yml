@@ -50,5 +50,5 @@ jobs:
       # to verify they pass accessibility
       - name: Accessibility Check
         run: |
-          ./index.js \
+          node ./index.js \
             --list $HOME/files.json
