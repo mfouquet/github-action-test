@@ -4,7 +4,8 @@ const fs = require('fs');
 
 try {
   console.log(process.env.FILES_CHANGED);
-  const files = JSON.parse(process.env.FILES_CHANGED);
+  const escapedFiles = process.env.FILES_CHANGED.replace(/\\/g,"");
+  const files = JSON.parse(escapedFiles);
   console.log(files);
   files.forEach(file => {
     console.log(file);
