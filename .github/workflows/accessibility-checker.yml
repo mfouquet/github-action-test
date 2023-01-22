@@ -1,5 +1,5 @@
 name: 'Accessibility Checker'
-description: 'Verify accessibility on html files.'
+# Verify accessibility on html files.
 on:
   workflow_dispatch:
   push:
