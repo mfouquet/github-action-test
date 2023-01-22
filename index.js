@@ -9,7 +9,25 @@ try {
   const files = JSON.parse(process.env.FILES_CHANGED);
 
   files.forEach(file => {
-    console.log(file);
+    if (file.includes('.css')) {
+      fs.readFile(file, 'utf8', (err, data) => {
+        if (err) {
+          console.error(err);
+          return;
+        }
+        console.log(data);
+      });
+    } else if (file.includes('.html')) {
+      fs.readFile(file, 'utf8', (err, data) => {
+        if (err) {
+          console.error(err);
+          return;
+        }
+        console.log(data);
+      });
+    } else {
+      console.log(`Nothing to check in this file: ${file}`);
+    }
   });
   // fs.readFile('./example/example.css', 'utf8', (err, data) => {
   //   if (err) {
